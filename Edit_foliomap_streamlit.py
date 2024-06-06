@@ -54,8 +54,8 @@ def main():
     st.set_page_config(layout="wide")
     st.title('Bus and Walking Route Editor')
 
-    stops = load_pickle('Time_files/route_dictionaries.pkl')
-    routes = load_pickle('Time_files/transformed_routes_geojson.pkl')
+    stops = load_pickle('route_dictionaries.pkl')
+    routes = load_pickle('transformed_routes_geojson.pkl')
 
     bus_line = st.selectbox('Select a bus line:', ['Choose a line', 'Blueline', 'Goldline'])
     if bus_line != 'Choose a line':
