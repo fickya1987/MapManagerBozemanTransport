@@ -3,7 +3,6 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Draw
 import pandas as pd
-import geopandas as gpd
 
 @st.cache_data
 def load_pickle(filepath):
