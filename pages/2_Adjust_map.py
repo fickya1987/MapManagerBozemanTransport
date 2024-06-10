@@ -1,19 +1,8 @@
 import streamlit as st
+from menu import menu_with_redirect
 import folium
-from streamlit_folium import st_folium
-from folium.plugins import Draw
-import pandas as pd
+import pandas
 
-@st.cache_data
-def load_pickle(filepath):
-    try:
-        loaded_data = pd.read_pickle(filepath)
-        print("Data loaded successfully:", loaded_data.keys())
-        return loaded_data
-    except Exception as e:
-        print("Error loading the pickle file:", str(e))
-        return None
-    
 def create_route_map(trip_data, geojson_data, line_name):
     if trip_data.empty:
         raise ValueError("Trip data is empty. Cannot create map.")
@@ -52,9 +41,13 @@ def create_route_map(trip_data, geojson_data, line_name):
 def main():
     st.set_page_config(layout="wide")
     st.title('Bus and Walking Route Editor')
+    # Redirect to app.py if not logged in, otherwise show the navigation menu
+    menu_with_redirect()
 
-    stops = load_pickle('route_dictionaries.pkl')
-    routes = load_pickle('transformed_routes_geojson.pkl')
+    # Verify the user's role
+    if st.session_state.authentication_status is not True:
+        st.warning("You do not have permission to view this page.")
+        st.stop()
 
     bus_line = st.selectbox('Select a bus line:', ['Choose a line', 'Blueline', 'Goldline'])
     if bus_line != 'Choose a line':
