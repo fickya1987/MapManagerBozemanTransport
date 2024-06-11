@@ -1,0 +1,8 @@
+#ignore venv
+streamlineDataManager/
+
+#ignore secrets
+.streamlit/secrets.toml
+
+#ignore credentials
+credentials.yaml
