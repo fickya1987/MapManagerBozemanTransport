@@ -1,6 +1,6 @@
 import streamlit as st
-from MapManagerBozemanTransport.components.menu import menu
-from MapManagerBozemanTransport.components.login import log_in, register_user, forgot_password, forgot_username, load_users
+from components.menu import menu
+from components.login import log_in, register_user, forgot_password, forgot_username, load_users
 
 st.set_page_config(page_title="Home", page_icon="🏠", layout="wide")
 
@@ -13,7 +13,6 @@ if "authentication_status" not in st.session_state:
 st.session_state._authentication_status = st.session_state.authentication_status
 
 menu()
-    
 
 st.write("# Welcome to Streamline Data Manager")
 

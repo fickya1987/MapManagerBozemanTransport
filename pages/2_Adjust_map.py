@@ -1,5 +1,5 @@
 import streamlit as st
-from menu import menu_with_redirect
+from MapManagerBozemanTransport.components.menu import menu_with_redirect
 import folium
 import pandas
 
