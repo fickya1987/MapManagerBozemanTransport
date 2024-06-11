@@ -6,3 +6,5 @@ streamlineDataManager/
 
 #ignore credentials
 credentials.yaml
+
+__pycache__
