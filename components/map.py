@@ -17,53 +17,6 @@ def update_coordinates(df, stop_id, new_lat, new_lon):
     df.loc[df['stop_id'] == stop_id, ['latitude', 'longitude']] = new_lat, new_lon
     return df
 
-def get_live_location():
-    js_code = """
-    <script>
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-            const accuracy = position.coords.accuracy;
-            document.getElementById("lat").innerText = latitude.toFixed(5);
-            document.getElementById("lon").innerText = longitude.toFixed(5);
-            document.getElementById("acc").innerText = accuracy.toFixed(2);
-            document.querySelector('input[name="latitude"]').value = latitude.toFixed(5);
-            document.querySelector('input[name="longitude"]').value = longitude.toFixed(5);
-        },
-        (error) => {
-            console.error("Error Code = " + error.code + " - " + error.message);
-        }
-    );
-    </script>
-    <div>
-        <p>Latitude: <span id="lat">0</span></p>
-        <p>Longitude: <span id="lon">0</span></p>
-        <p>Accuracy: <span id="acc">0</span> meters</p>
-        <input type="hidden" name="latitude">
-        <input type="hidden" name="longitude">
-    </div>
-    """
-    html(js_code)
-    latitude = st.session_state.get("latitude", 0)
-    longitude = st.session_state.get("longitude", 0)
-
-    js_listener_code = """
-    <script>
-    document.addEventListener('locationUpdate', function(event) {
-        const coordinates = event.detail;
-        const inputLat = document.querySelector('input[data-testid="latitude-input"]');
-        const inputLon = document.querySelector('input[data-testid="longitude-input"]');
-        inputLat.value = coordinates.latitude.toFixed(5);
-        inputLon.value = coordinates.longitude.toFixed(5);
-        inputLat.dispatchEvent(new Event('change'));
-        inputLon.dispatchEvent(new Event('change'));
-    });
-    </script>
-    """
-    html(js_listener_code, height=0)
-    return latitude, longitude
-
 def location_update():
     latitude = st.session_state.get("latitude", 0)
     longitude = st.session_state.get("longitude", 0)

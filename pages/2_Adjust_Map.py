@@ -1,8 +1,7 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
-from geopy.geocoders import Nominatim
-from streamlit.components.v1 import html
+from streamlit_js_eval import streamlit_js_eval, get_geolocation
 from components.menu import menu_with_redirect
 from components.map import *
 from components.databasefuncs import ensure_tables_exist, update_field, propagate_updates
@@ -32,7 +31,12 @@ if "longitude" not in st.session_state:
 # Display the initial values
 st.write(f"Initial Latitude: {st.session_state['latitude']}, Initial Longitude: {st.session_state['longitude']}")
 
-get_live_location()
+loc = get_geolocation()
+
+# Update session state with the geolocation data
+if loc:
+    st.session_state["latitude"] = loc['coords']['latitude']
+    st.session_state["longitude"] = loc['coords']['longitude']
 
 live_lat = float(st.session_state["latitude"])
 live_long = float(st.session_state["longitude"])

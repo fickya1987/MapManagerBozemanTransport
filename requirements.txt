@@ -10,3 +10,4 @@ st-supabase-connection==2.0.0
 st-pages==0.4.5
 streamlit-authenticator==0.3.2
 requests==2.27.1
+streamlit_js_eval==0.1.7
