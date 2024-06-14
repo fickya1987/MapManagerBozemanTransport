@@ -34,6 +34,10 @@ if "data_loaded" not in st.session_state:
 if "dtypes" not in st.session_state:
     st.session_state['dtypes'] = {}
 
+#initialize processed_data ss
+if 'processed_data' not in st.session_state:
+    st.session_state["processed_data"] = {}
+
 if st.button("Load Data from Database"):
     st.session_state['data_loaded'] = True
     data, dtypes = pull_selected_files(required_files, columns_to_select)
