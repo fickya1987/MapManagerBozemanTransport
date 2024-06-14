@@ -16,7 +16,7 @@ if not st.session_state.get("authentication_status", False):
     st.stop()
 
 # Title of the app
-st.title("Live Location updates")
+st.title("Live Location Map Updates")
 
 # Center the map on Bozeman, Montana
 bozeman_coords = [45.6770, -111.0429]
@@ -24,23 +24,22 @@ bozeman_coords = [45.6770, -111.0429]
 #pull processed data from session state
 stop_data_service = st.session_state["processed_data"]["stop_data_service"]
 
-init_location()
-html("""<script>
-document.addEventListener('locationUpdate', function(event) {
-    const coordinates = event.detail;
-    fetch('/_stcore_/update_session', {
-        method: 'POST',
-        body: JSON.stringify(coordinates),
-        headers: new Headers({'Content-Type': 'application/json'})
-    }).then(response => response.json()).then(data => {
-        window.location.reload();
-    });
-});
-</script>""")
+if "latitude" not in st.session_state:
+    st.session_state["latitude"] = bozeman_coords[0]
+if "longitude" not in st.session_state:
+    st.session_state["longitude"] = bozeman_coords[1]
 
-live_lat = st.session_state["latitude"]
-live_long = st.session_state["longitude"]
-live_location = [float(live_lat), float(live_long)] if live_lat and live_long else None
+# Display the initial values
+st.write(f"Initial Latitude: {st.session_state['latitude']}, Initial Longitude: {st.session_state['longitude']}")
+
+get_live_location()
+
+live_lat = float(st.session_state["latitude"])
+live_long = float(st.session_state["longitude"])
+live_location = [live_lat, live_long] if live_lat and live_long else None
+
+# Debug live location values
+st.write(f"Live Latitude: {st.session_state['latitude']}, Live Longitude: {st.session_state['longitude']}")
 
 # Organize stops by bus line
 bus_lines = organize_by_bus_line(stop_data_service)
@@ -58,6 +57,7 @@ for _, stop in unique_stops.iterrows():
 #put live location on map
 if live_location:
     folium.Marker(location=live_location, popup="You are here!", icon=folium.Icon(color="red")).add_to(m)
+    st.write("Live location marker added to the map")  # Debug log
 
 # Display map
 st_data = st_folium(m, width=700, height=500)

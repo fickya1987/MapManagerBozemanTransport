@@ -70,7 +70,4 @@ if st.session_state['data_loaded']:
     # Add download CSV button
     download_tables()
 
-else:
-    st.write("Click Load Data")
-
 

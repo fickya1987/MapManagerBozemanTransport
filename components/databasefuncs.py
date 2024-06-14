@@ -51,7 +51,7 @@ def pull_selected_files(tables, columns, comment = True):
         if isinstance(col_selection, list):
             col_selection = ','.join(col_selection)
         if comment:
-            st.write(f"Pulling data for table: {table}, columns: {col_selection}")
+            st.write(f"Pulling data for: **{table}** with columns: **{col_selection}**")
         query = st.session_state["client"].table(table).select(col_selection)
         response = execute_query(query)
         if response and response.data:

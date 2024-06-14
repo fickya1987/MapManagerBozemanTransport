@@ -25,20 +25,44 @@ def get_live_location():
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
             const accuracy = position.coords.accuracy;
-            const coordinates = {
-                "latitude": latitude.toFixed(5),
-                "longitude": longitude.toFixed(5),
-                "accuracy": accuracy.toFixed(2)
-            };
-            document.dispatchEvent(new CustomEvent('locationUpdate', {detail: coordinates}));
+            document.getElementById("lat").innerText = latitude.toFixed(5);
+            document.getElementById("lon").innerText = longitude.toFixed(5);
+            document.getElementById("acc").innerText = accuracy.toFixed(2);
+            document.querySelector('input[name="latitude"]').value = latitude.toFixed(5);
+            document.querySelector('input[name="longitude"]').value = longitude.toFixed(5);
         },
         (error) => {
             console.error("Error Code = " + error.code + " - " + error.message);
         }
     );
     </script>
+    <div>
+        <p>Latitude: <span id="lat">0</span></p>
+        <p>Longitude: <span id="lon">0</span></p>
+        <p>Accuracy: <span id="acc">0</span> meters</p>
+        <input type="hidden" name="latitude">
+        <input type="hidden" name="longitude">
+    </div>
     """
     html(js_code)
+    latitude = st.session_state.get("latitude", 0)
+    longitude = st.session_state.get("longitude", 0)
+
+    js_listener_code = """
+    <script>
+    document.addEventListener('locationUpdate', function(event) {
+        const coordinates = event.detail;
+        const inputLat = document.querySelector('input[data-testid="latitude-input"]');
+        const inputLon = document.querySelector('input[data-testid="longitude-input"]');
+        inputLat.value = coordinates.latitude.toFixed(5);
+        inputLon.value = coordinates.longitude.toFixed(5);
+        inputLat.dispatchEvent(new Event('change'));
+        inputLon.dispatchEvent(new Event('change'));
+    });
+    </script>
+    """
+    html(js_listener_code, height=0)
+    return latitude, longitude
 
 def location_update():
     latitude = st.session_state.get("latitude", 0)
@@ -47,10 +71,8 @@ def location_update():
 
 def init_location():
     if "latitude" not in st.session_state or "longitude" not in st.session_state:
+        st.session_state["latitude"], st.session_state["longitude"] = 0.0, 0.0
         get_live_location()
-        # Provide initial default values if not set
-        st.session_state["latitude"] = 0.0
-        st.session_state["longitude"] = 0.0
 
 # Add JavaScript to listen for the custom event and update session state
 html("""
