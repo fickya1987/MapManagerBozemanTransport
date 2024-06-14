@@ -1,9 +1,12 @@
-streamlit
-pandas
+streamlit == 1.35.0
+pandas==1.5.3
 folium
-geopy
-streamlit-folium
+geopy==2.4.1
+streamlit_folium==0.20.0
 pyyaml
-supabase-py
-streamlit-authenticator
-requests
+supabase==2.5.0
+supabase-py==0.0.2
+st-supabase-connection==2.0.0
+st-pages==0.4.5
+streamlit-authenticator==0.3.2
+requests==2.27.1
