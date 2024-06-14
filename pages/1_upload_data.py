@@ -1,7 +1,16 @@
 import streamlit as st
 from components.databasefuncs import *
+from components.menu import menu_with_redirect
 
-st.title("Supabase Database Interaction")
+# Initialize user session and verify login
+menu_with_redirect()
+
+# Verify the user's role
+if not st.session_state.get("authentication_status", False):
+    st.warning("You do not have permission to view this page.")
+    st.stop()
+
+st.title("Load Maps Data")
 st.markdown('''This page allows you to upload google maps files to adjust in the map viewer page. 
             All of the files are stored on a lightweight database, so you can proceed without uploading anything. 
             If you believe that you have an updated copy of one of the following files, then hit that replace table button 
@@ -37,6 +46,8 @@ if st.button("Load Data from Database"):
             df = pd.read_csv(file)
             df['source'] = 'uploaded'
             data[table_name] = df
+    
+    process_data()
 
 if st.session_state['data_loaded']:
     st.subheader("Replace Table Data in Database with Upload")
@@ -51,4 +62,11 @@ if st.session_state['data_loaded']:
                     upload_table(file, table_name)
     else:
         st.warning("No files uploaded to replace.")
+    
+    # Add download CSV button
+    download_tables()
+
+else:
+    st.write("Click Load Data")
+
 

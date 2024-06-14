@@ -1,75 +1,119 @@
 import streamlit as st
-from MapManagerBozemanTransport.components.menu import menu_with_redirect
 import folium
-import pandas
+from streamlit_folium import st_folium
+from geopy.geocoders import Nominatim
+from streamlit.components.v1 import html
+from components.menu import menu_with_redirect
+from components.map import *
+from components.databasefuncs import ensure_tables_exist, update_field, propagate_updates
 
-def create_route_map(trip_data, geojson_data, line_name):
-    if trip_data.empty:
-        raise ValueError("Trip data is empty. Cannot create map.")
-    start_lat = trip_data['stop_lat'].iloc[0]
-    start_lon = trip_data['stop_lon'].iloc[0]
+# Initialize user session and verify login
+menu_with_redirect()
 
-    m = folium.Map(location=[start_lat, start_lon], zoom_start=13, tiles='cartodbpositron')
-    for _, row in trip_data.iterrows():
-        marker = folium.Marker(
-            [row['stop_lat'], row['stop_lon']],
-            popup=f"{row['stop_name']}<br>Time: {row.get('interpolated_time', 'Unknown')}"
-        )
-        marker.add_to(m)
+# Verify the user's role
+if not st.session_state.get("authentication_status", False):
+    st.warning("You do not have permission to view this page.")
+    st.stop()
 
-    folium.GeoJson(
-        geojson_data[line_name],
-        name=line_name,
-        style_function=lambda x: {'color': 'blue', 'weight': 2.5, 'opacity': 1}
-    ).add_to(m)
+# Title of the app
+st.title("Live Location updates")
 
-    draw = Draw(
-        draw_options={
-            'polyline': {'allowIntersection': True},
-            'polygon': {'allowIntersection': False},
-            'rectangle': False,
-            'circle': False,
-            'marker': True,
-            'circlemarker': False
-        },
-        edit_options={'edit': False}
-    )
-    draw.add_to(m)
+# Center the map on Bozeman, Montana
+bozeman_coords = [45.6770, -111.0429]
 
-    return m
+#pull processed data from session state
+stop_data_service = st.session_state["processed_data"]["stop_data_service"]
 
-def main():
-    st.set_page_config(layout="wide")
-    st.title('Bus and Walking Route Editor')
-    # Redirect to app.py if not logged in, otherwise show the navigation menu
-    menu_with_redirect()
+init_location()
+html("""<script>
+document.addEventListener('locationUpdate', function(event) {
+    const coordinates = event.detail;
+    fetch('/_stcore_/update_session', {
+        method: 'POST',
+        body: JSON.stringify(coordinates),
+        headers: new Headers({'Content-Type': 'application/json'})
+    }).then(response => response.json()).then(data => {
+        window.location.reload();
+    });
+});
+</script>""")
 
-    # Verify the user's role
-    if st.session_state.authentication_status is not True:
-        st.warning("You do not have permission to view this page.")
-        st.stop()
+live_lat = st.session_state["latitude"]
+live_long = st.session_state["longitude"]
+live_location = [float(live_lat), float(live_long)] if live_lat and live_long else None
 
-    bus_line = st.selectbox('Select a bus line:', ['Choose a line', 'Blueline', 'Goldline'])
-    if bus_line != 'Choose a line':
-        # Filter trips based on frequency and day
-        day_filter = st.radio("Select Day Type:", ('Weekday', 'Weekend'))
-        hide_half_hour = st.checkbox("Show Half-Hour Frequency (Fall through Spring Only)", False)
+# Organize stops by bus line
+bus_lines = organize_by_bus_line(stop_data_service)
+selected_bus_line = st.selectbox("Select Bus Line", options=bus_lines.keys())
 
-        trips = [trip for trip in stops[bus_line].keys() if
-                 (day_filter in trip) and
-                 (hide_half_hour or '1/2Hour' not in trip)]
+# Initialize a folium map
+m = folium.Map(location=bozeman_coords, zoom_start=12, tiles='cartodbpositron')
 
-        selected_trip = st.selectbox('Select a trip:', ['Choose a trip'] + trips)
-        col1, col2 = st.columns(2)
-        with col1:
-            if selected_trip and selected_trip != 'Choose a trip':
-                with st.spinner('Loading map...'):
-                    trip_map = create_route_map(stops[bus_line][selected_trip], routes, bus_line)
-                    st_folium(trip_map, height=600)
+# Add bus stops to the map
+bus_stops = bus_lines[selected_bus_line]
+unique_stops = bus_stops[['stop_lat', 'stop_lon', 'stop_id']].drop_duplicates()
+for _, stop in unique_stops.iterrows():
+    folium.Marker(location=[stop['stop_lat'], stop['stop_lon']], popup=stop['stop_id']).add_to(m)
 
-        with col2:
-            if selected_trip and selected_trip != 'Choose a trip':
-                st.dataframe(stops[bus_line][selected_trip])
+#put live location on map
+if live_location:
+    folium.Marker(location=live_location, popup="You are here!", icon=folium.Icon(color="red")).add_to(m)
 
-if __name__ == "__main__":
-    main()
+# Display map
+st_data = st_folium(m, width=700, height=500)
+
+#refresh location
+if st.button("Refresh Location"):
+    get_live_location()
+
+#update_map as session state
+update_map = st.radio("Update Map", ["No", "Yes"])
+if "update_map" not in st.session_state:
+    st.session_state.update_map = False
+if update_map == "Yes":
+    st.session_state.update_map = True
+else:
+    st.session_state.update_map = False
+
+'''
+if st.session_state.update_map:
+    selected_stop_id = st.text_input("Selected Stop ID")
+    
+    if selected_stop_id:
+        if live_location:
+            if st.button("Update Stop to Your Location"):
+                # Update the selected bus stop location to the user's live location
+                stop_data_service = update_coordinates(stop_data_service, selected_stop_id, live_lat, live_long)
+                
+                # Store updates
+                update_field('stops', ['stop_lat', 'stop_lon'], {
+                    'stop_lat': live_lat,
+                    'stop_lon': live_long
+                })
+                
+                st.success("Bus stop location updated to your live location.")
+        else:
+            st.warning("Live location not available.")
+
+# Ensure the updates and update_log tables exist
+ensure_tables_exist()
+
+# Automatically upload updates to Supabase table every 2 minutes or with save updates button
+if st.button("Save Updates"):
+    propagate_updates()
+
+st_autoupdate = st.checkbox("Automatically Save Updates Every 2 Minutes")
+
+if st_autoupdate:
+    st_autoupdate_interval = 120  # 2 minutes in seconds
+
+    import time
+    from threading import Timer
+
+    def auto_save():
+        propagate_updates()
+        Timer(st_autoupdate_interval, auto_save).start()
+
+    auto_save()
+
+'''

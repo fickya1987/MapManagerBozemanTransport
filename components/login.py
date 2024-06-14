@@ -39,13 +39,17 @@ def log_in():
         with col2:
             st.write(f'Welcome *{st.session_state["name"]}*')
             authenticator.logout()
-        
+        st.write('Use the Upload Data Side bar to load the google maps data, then view and adjust it in the Adjust Map page.')    
 
     #incorrect or abscent password
     elif st.session_state["authentication_status"] is False:
         st.error('Username/password is incorrect')
     elif st.session_state["authentication_status"] is None:
         st.warning('Please enter your username and password')
+
+def initialize_user_session():
+    if "username" not in st.session_state:
+        st.session_state["username"] = st.session_state.get("name", None)
 
 
 def reset_passowrd ():

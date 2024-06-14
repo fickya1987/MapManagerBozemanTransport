@@ -4,8 +4,8 @@ def authenticated_menu():
     # Show a navigation menu for authenticated users
     st.sidebar.page_link("Home.py", label="Switch accounts")
     if st.session_state["authentication_status"]:
-            st.sidebar.page_link("pages/1_upload_data.py", label="Upload Data")
-            st.sidebar.page_link("pages/2_Adjust_map.py", label="Adjust Map Data")
+            st.sidebar.page_link("pages/1_Upload_Data.py", label="Upload Data")
+            st.sidebar.page_link("pages/2_Adjust_Map.py", label="Adjust Map Data")
 
 
 def unauthenticated_menu():
