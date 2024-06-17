@@ -9,7 +9,7 @@ menu_with_redirect()
 if not st.session_state.get("authentication_status", False):
     st.warning("You do not have permission to view this page.")
     st.stop()
-
+                
 st.title("Load Maps Data")
 st.markdown('''This page allows you to upload google maps files to adjust in the map viewer page. 
             All of the files are stored on a lightweight database, so you can proceed without uploading anything. 
@@ -71,3 +71,9 @@ if st.session_state['data_loaded']:
     download_tables()
 
 
+col1, col2 = st.columns([5,1])
+
+with col2:
+        if st.session_state.data_loaded is True:
+            if st.button("Continue"):
+                st.switch_page("pages/2_Adjust_Map.py")

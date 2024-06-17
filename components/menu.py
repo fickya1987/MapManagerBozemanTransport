@@ -1,4 +1,5 @@
 import streamlit as st
+#from streamlit_extras.stylable_container import stylable_container
 
 def authenticated_menu():
     # Show a navigation menu for authenticated users
@@ -28,3 +29,18 @@ def menu_with_redirect():
     if "authentication_status" not in st.session_state or st.session_state.authentication_status is None:
         st.switch_page("Home.py")
     menu()
+
+#Sorry still working on right alignment containers
+#def button_align_right(contents,key):
+   # with stylable_container(
+    #    key=key,
+    #    css_styles="""
+    #    {
+    #        display: flex;
+    #        justify-content: flex-end;
+    #        width: 100%;
+    #    }
+    #    """
+    #):
+    #    st.button(contents)
+
