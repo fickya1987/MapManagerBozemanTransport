@@ -4,28 +4,28 @@ import folium
 from streamlit_folium import st_folium
 from streamlit.components.v1 import html
 
+
 @st.cache_data
 def organize_by_bus_line(df):
     bus_lines = {}
     for line in df['route_long_name'].unique():
-            if line not in bus_lines:
-                bus_lines[line] = []
-            bus_lines[line].append(df[df['route_long_name'] == line])
+        if line not in bus_lines:
+            bus_lines[line] = []
+        bus_lines[line].append(df[df['route_long_name'] == line])
     return {line: pd.concat(dfs) for line, dfs in bus_lines.items()}
 
+
 def update_coordinates(df, stop_id, new_lat, new_lon):
-    df.loc[df['stop_id'] == stop_id, ['latitude', 'longitude']] = new_lat, new_lon
+    df.loc[df['stop_id'] == stop_id, [
+        'latitude', 'longitude']] = new_lat, new_lon
     return df
+
 
 def location_update():
     latitude = st.session_state.get("latitude", 0)
     longitude = st.session_state.get("longitude", 0)
     return latitude, longitude
 
-def init_location():
-    if "latitude" not in st.session_state or "longitude" not in st.session_state:
-        st.session_state["latitude"], st.session_state["longitude"] = 0.0, 0.0
-        get_live_location()
 
 # Add JavaScript to listen for the custom event and update session state
 html("""
